@@ -23,7 +23,11 @@ LDFLAGS		:=	-Bstatic \
 			-Wl,--start-group \
 			-Wl,--end-group \
 			-Wl,--build-id=none \
-			-nostdlib
+			-nostdlib \
+			-Wl,--no-warn-rwx-segments
+
+# The last option above gets rid of the stupid warning:
+# rock.elf has a LOAD segment with RWX permissions
 
 CC			=	$(CROSS_COMPILE)gcc $(CFLAGS)
 LD 			=	$(CROSS_COMPILE)gcc $(LDFLAGS)
