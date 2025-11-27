@@ -1,0 +1,8 @@
+bootrom*.bin
+bootrom*.dis
+bootrom*.elf
+rk3328.elf
+arm_wrap
+*.bak1
+*.bak*
+*.odx
