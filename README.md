@@ -11,3 +11,5 @@ http://cholla.mmto.org/orange_pi/rk3328/
 Here are the projects you will find here:
 
 * hello - a simple "do something" first project.
+* bootrom - disassembly and analysis of the bootrom
+* blink - second simple project - blink the status LED
