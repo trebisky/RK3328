@@ -152,6 +152,7 @@ struct rock_grf {
 	vu32		common_iomux;	/* 50 */
 	u32			_pad1[43];
 
+	/* Pull up/down */
 	vu32		gpio0a_pull;	/* 100 */
 	vu32		gpio0b_pull;
 	vu32		gpio0c_pull;
@@ -173,6 +174,7 @@ struct rock_grf {
 	vu32		gpio3d_pull;
 	u32			_pad2[48];
 
+	/* drive strength */
 	vu32		gpio0a_drive;	/* 200 */
 	vu32		gpio0b_drive;
 	vu32		gpio0c_drive;
@@ -194,6 +196,7 @@ struct rock_grf {
 	vu32		gpio3d_drive;
 	u32			_pad3[48];
 
+	/* Slew rate */
 	vu32		gpio0ab_sr;	/* 300 */
 	vu32		gpio0cd_sr;
 
@@ -207,6 +210,7 @@ struct rock_grf {
 	vu32		gpio3cd_sr;
 	u32			_pad4[56];
 
+	/* Schmitt trigger */
 	vu32		gpio0ab_smt;	/* 380 */
 	vu32		gpio0cd_smt;
 
@@ -334,12 +338,12 @@ blinker ( void )
 	/* Setting the bit does turn the LED on */
 	for ( ;; ) {
 	    puts ( "on\n" );
-	    // gp->data |= LED_MASK;
-	    gp->data = 0xffffffff;
+	    gp->data |= LED_MASK;
+	    // gp->data = 0xffffffff;
 	    delay ();
 	    puts ( "off\n" );
-	    // gp->data &= ~LED_MASK;
-	    gp->data = 0;
+	    gp->data &= ~LED_MASK;
+	    // gp->data = 0;
 	    delay ();
 	}
 }

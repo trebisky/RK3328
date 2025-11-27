@@ -67,10 +67,10 @@ struct rock_uart {
 #endif
 
 /* For the RK3328 */
-#define UART0_BASE	((struct rock_uart *) 0xff120000)
-#define UART1_BASE	((struct rock_uart *) 0xff130000)
-#define UART2_BASE	((struct rock_uart *) 0xff140000)
-#define UART_BASE	UART1_BASE
+#define UART0_BASE	((struct rock_uart *) 0xff110000)
+#define UART1_BASE	((struct rock_uart *) 0xff120000)
+#define UART2_BASE	((struct rock_uart *) 0xff130000)
+#define UART_BASE	UART2_BASE
 
 /* Bits in the status register */
 #define ST_BUSY		BIT(0)
