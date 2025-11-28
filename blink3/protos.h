@@ -18,5 +18,9 @@ void printf ( char *, ... );
 void gpio_init ( void );
 void status_led_on ( void );
 void status_led_off ( void );
+void wan_led_on ( void );
+void wan_led_off ( void );
+void lan_led_on ( void );
+void lan_led_off ( void );
 
 // THE END

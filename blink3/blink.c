@@ -37,9 +37,13 @@ blinker ( void )
 	for ( ;; ) {
 	    // uart_puts ( "on\n" );
 		status_led_on ();
+		wan_led_on ();
+		lan_led_on ();
 	    delay ();
 	    // uart_puts ( "off\n" );
 		status_led_off ();
+		wan_led_off ();
+		lan_led_off ();
 	    delay ();
 	}
 }

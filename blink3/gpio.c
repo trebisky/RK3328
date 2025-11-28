@@ -174,10 +174,33 @@ blinker ( void )
 }
 #endif
 
+/* LED specifics */
+
+/*
+ * The RK3328 status LED is connected to GPIO3 C5
+ * The LAN led -- gpio2 B7
+ * The WAN led -- gpio2 C2
+ */
+#define STATUS_BIT		(16+5)
+#define WAN_BIT			(8+7)
+#define LAN_BIT			(16+2)
+
+#define STATUS_LED_MASK	BIT(STATUS_BIT)
+#define WAN_LED_MASK	BIT(WAN_BIT)
+#define LAN_LED_MASK	BIT(LAN_BIT)
+
+static struct rock_gpio *status_gpio;
+static struct rock_gpio *wan_gpio;
+static struct rock_gpio *lan_gpio;
+
 static void
-grf_init ( void )
+status_led_setup ( void )
 {
 	struct rock_grf *gp = GRF_BASE;
+
+	status_gpio = GPIO3_BASE;
+
+	status_gpio->dir |= STATUS_LED_MASK;
 
 	gp->gpio3c_iomux = 0xffff0000;
 	// gp->gpio3c_pull = 0xffff0000;
@@ -185,41 +208,70 @@ grf_init ( void )
 	// gp->gpio3cd_smt = 0xffff0000;
 }
 
-/* LED specifics */
+/* The WAN led -- gpio2 C2 */
+static void
+wan_led_setup ( void )
+{
+	struct rock_grf *gp = GRF_BASE;
 
-/*
- * The RK3328 status LED is connected to GPIO3 C5
- */
-#define LED_BIT		(16+5)
-#define LED_MASK	BIT(LED_BIT)
+	wan_gpio = GPIO2_BASE;
+	wan_gpio->dir |= WAN_LED_MASK;
+	gp->gpio2cl_iomux = 0xffff0000;
+}
 
+/* The LAN led -- gpio2 B7 */
+static void
+lan_led_setup ( void )
+{
+	struct rock_grf *gp = GRF_BASE;
 
-static struct rock_gpio *status_gpio;
+	lan_gpio = GPIO2_BASE;
+	lan_gpio->dir |= LAN_LED_MASK;
+	gp->gpio2bh_iomux = 0xffff0000;
+}
 
 void
 gpio_init ( void )
 {
-	struct rock_gpio *gp = GPIO_BASE;
-
-	status_gpio = gp;
-
-	grf_init ();
-
-	/* All outputs */
-	// gp->dir = 0xffffffff;
-	gp->dir |= LED_MASK;
+	status_led_setup ();
+	wan_led_setup ();
+	lan_led_setup ();
 }
 
 void
 status_led_on ( void )
 {
-	status_gpio->data |= LED_MASK;
+	status_gpio->data |= STATUS_LED_MASK;
 }
 
 void
 status_led_off ( void )
 {
-	status_gpio->data &= ~LED_MASK;
+	status_gpio->data &= ~STATUS_LED_MASK;
+}
+
+void
+wan_led_on ( void )
+{
+	wan_gpio->data |= WAN_LED_MASK;
+}
+
+void
+wan_led_off ( void )
+{
+	wan_gpio->data &= ~WAN_LED_MASK;
+}
+
+void
+lan_led_on ( void )
+{
+	lan_gpio->data |= LAN_LED_MASK;
+}
+
+void
+lan_led_off ( void )
+{
+	lan_gpio->data &= ~LAN_LED_MASK;
 }
 
 /* THE END */
