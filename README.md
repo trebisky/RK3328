@@ -13,3 +13,4 @@ Here are the projects you will find here:
 * hello - a simple "do something" first project.
 * bootrom - disassembly and analysis of the bootrom
 * blink - second simple project - blink the status LED
+* blink3 - blink all 3 onboard LED, big code cleanup

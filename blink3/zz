@@ -1,0 +1,15 @@
+#ifdef notdef
+/* RK3399 */
+#define UART0_BASE	((struct rock_uart *) 0xff180000)
+#define UART1_BASE	((struct rock_uart *) 0xff190000)
+#define UART2_BASE	((struct rock_uart *) 0xff1a0000)
+#define UART3_BASE	((struct rock_uart *) 0xff1b0000)
+#define UART4_BASE	((struct rock_uart *) 0xff370000)
+#define UART_BASE	UART2_BASE
+#endif
+
+/* For the RK3328 */
+#define UART0_BASE	((struct rock_uart *) 0xff110000)
+#define UART1_BASE	((struct rock_uart *) 0xff120000)
+#define UART2_BASE	((struct rock_uart *) 0xff130000)
+#define UART_BASE	UART2_BASE
