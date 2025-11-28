@@ -13,4 +13,10 @@ void uart_init ( void );
 void uart_putc ( char );
 void uart_puts ( char * );
 
+void printf ( char *, ... );
+
+void gpio_init ( void );
+void status_led_on ( void );
+void status_led_off ( void );
+
 // THE END
