@@ -1,4 +1,0 @@
-typedef volatile unsigned int vu32;
-typedef unsigned int u32;
-
-#define BIT(x)	(1<<(x))
