@@ -48,15 +48,29 @@ blinker ( void )
 	}
 }
 
+static inline unsigned int
+get_el(void)
+{
+        unsigned int val;
+
+        asm volatile("mrs %0, CurrentEL" : "=r" (val) : : "cc");
+        return val >> 2;
+}
+
 void
 main ( void )
 {
+	int el;
+
 	uart_init ();
 
 	gpio_init ();
 
 	/* This will run the hello demo */
 	// talker ();
+
+	el = get_el ();
+	printf ( "Running at EL %d\n", el );
 
 	/* This will run the blink demo */
 	printf ( "Blinking ...\n" );
