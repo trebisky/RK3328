@@ -113,6 +113,7 @@ ffff0060:	b9400020 	ldr	w0, [x1]
 ffff0064:	d61f0000 	br	x0
 
 ; Processor 0 comes here to do its normal startup.
+; first we zero all the registers
 ffff0068:	aa1f03e0 	mov	x0, xzr
 ffff006c:	aa1f03e1 	mov	x1, xzr
 ffff0070:	aa1f03e2 	mov	x2, xzr
@@ -145,8 +146,12 @@ ffff00d8:	aa1f03fc 	mov	x28, xzr
 ffff00dc:	aa1f03fd 	mov	x29, xzr
 ffff00e0:	aa1f03fe 	mov	x30, xzr
 
+; ff09xxxx is a 64K internal memory area
+
 ffff00e4:	580000a0 	ldr	x0, 0xffff00f8  ; ff091000 00000000
 ffff00e8:	9100001f 	mov	sp, x0
+
+; Set vbar (this is the only place we do so)
 ffff00ec:	580000a0 	ldr	x0, 0xffff0100  ; ffff0800 00000000
 ffff00f0:	d51ec000 	msr	vbar_el3, x0
 ffff00f4:	14001065 	b	0xffff4288
@@ -554,6 +559,9 @@ ffff0740:	4b415352 	"KASR"
 ffff0744:	ff230004
 ffff0748:	ff0b0008
 
+; A bunch of zero pad to cause the vector table
+; that follows to be on a 2K boundary.
+
 ffff074c:	00000000 	udf	#0
 ffff0750:	00000000 	udf	#0
 ffff0754:	00000000 	udf	#0
@@ -626,6 +634,12 @@ ffff07fc:	00000000 	udf	#0
 ;
 ; The bootrom runs at EL3.
 ; My current setup has U-boot running my code in EL2
+;
+; This first vector table expects nothing bad to happen.
+; It only sets up spin loops for Synchronous interrupts.
+; If other interrupts did happen, they would fall through
+; to a subsequent spin loop, but I don't think that is
+; intentional
 
 ; ------
 ;  1 - same EL, using SP_EL0
@@ -772,11 +786,19 @@ ffff09fc:	d503201f 	nop
 ; ----------------------------------------------------
 ; Now we have what looks like another vector table.
 ;  sort of ...
+; It never gets referenced that I can see, so apparently
+;  it is just here for us to admire.
+;
 ; The first 3 sections look right.
 ; The last section (to handle 32 bit code) just
 ; seems to get used for other purposes.
 
+; Notice here that a handler is only set up (once again)
+; for synchronous interrupts in each case.
+
 ;  1 - same EL, using SP_EL0
+;  Here if we get a synch_int, we just return.
+;  (at least I think that is what this code does).
 ffff0a00:	f81f0fe0 	str	x0, [sp, #-16]!
 ffff0a04:	d53e4020 	mrs	x0, elr_el3
 ffff0a08:	91001000 	add	x0, x0, #0x4
@@ -811,6 +833,29 @@ ffff0a78:	d503201f 	nop
 ffff0a7c:	d503201f 	nop
 
 ;  2 - same EL, using SP_ELx
+
+; Here we actually handle the synch_int
+
+; some comments on this code.
+; the "stp" instruction is "store pair".
+; These are 64 bit registers, hence 8 bytes each,
+; so two of them will require 16 bytes.
+; The addressing mode here is such that -16 is
+; added to the stack before the store.
+; From there you can figure out what "ldp" is.
+; We load a pair of registers, and here
+; the address mode adds 16 after the load.
+;
+; Note that x19 to x29 do NOT get saved.
+; This is because the convention is that when
+; we call a well behaved subroutine, it will
+; save any of those registers it intends to mangle.
+; Of course if it doesn't do anything with those
+; registers, it doesn't need to do anything at all.
+; And if it calls other functions, it is their
+; responsibility to maintain "the deal" regarding
+; these "callee saved registers".
+
 ffff0a80:	a9bf07e0 	stp	x0, x1, [sp, #-16]!
 ffff0a84:	a9bf0fe2 	stp	x2, x3, [sp, #-16]!
 ffff0a88:	a9bf17e4 	stp	x4, x5, [sp, #-16]!
@@ -3509,6 +3554,8 @@ ffff3424:	b9000002 	str	w2, [x0]
 ffff3428:	52800020 	mov	w0, #0x1                   	// #1
 ffff342c:	b9000020 	str	w0, [x1]
 ffff3430:	1400046d 	b	0xffff45e4
+
+; Handler for Synchronous interrupts
 ffff3434:	d10043ff 	sub	sp, sp, #0x10
 ffff3438:	a9007bfd 	stp	x29, x30, [sp]
 ffff343c:	910003fd 	mov	x29, sp
@@ -3525,6 +3572,7 @@ ffff3464:	b9000001 	str	w1, [x0]
 ffff3468:	a9407bfd 	ldp	x29, x30, [sp]
 ffff346c:	910043ff 	add	sp, sp, #0x10
 ffff3470:	d65f03c0 	ret
+
 ffff3474:	d100c3ff 	sub	sp, sp, #0x30
 ffff3478:	a9027bfd 	stp	x29, x30, [sp, #32]
 ffff347c:	910083fd 	add	x29, sp, #0x20
@@ -3583,6 +3631,7 @@ ffff354c:	a94157f4 	ldp	x20, x21, [sp, #16]
 ffff3550:	a9427bfd 	ldp	x29, x30, [sp, #32]
 ffff3554:	9100c3ff 	add	sp, sp, #0x30
 ffff3558:	d65f03c0 	ret
+
 ffff355c:	d10083ff 	sub	sp, sp, #0x20
 ffff3560:	a9017bfd 	stp	x29, x30, [sp, #16]
 ffff3564:	910043fd 	add	x29, sp, #0x10
