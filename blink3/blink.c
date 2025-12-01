@@ -57,6 +57,39 @@ get_el(void)
         return val >> 2;
 }
 
+/* From RK3399 "bare_dump" */
+void
+show_cpu ( void )
+{
+		unsigned int val;
+		int core_type;
+		int core;
+
+        asm volatile("mrs %0, mpidr_el1" : "=r" (val) : : "cc");
+		printf ( "MPidr_el1 = %h\n", val );
+		core = val & 0x1ff;
+		printf ( "Core %d\n", core );
+
+		asm volatile("mrs %0, CurrentEL" : "=r" (val) : : "cc");
+		printf ( "CurrentEL reg = %h\n", val );
+		printf ( "CurrentEL = %d\n", val >> 2 );
+
+		/* This is midr, not mpidr */
+		asm volatile("mrs %0, midr_el1" : "=r" (val) : : "cc");
+		printf ( "Midr_el1 = %h\n", val );
+		/* This yields 410FD034
+		 * The "D03" indicates an A53 core
+		 * If we saw "D08" it would be A72
+		 */
+		core_type = (val>>4) & 0xfff;
+		if ( core_type == 0xD03 )
+			printf ( "This is an A53 core (%X)\n", core_type );
+		else if ( core_type == 0xD08 )
+			printf ( "This is an A72 core (%X)\n", core_type );
+		else
+			printf ( "This is an unknown core (%X)\n", core_type );
+}
+
 void
 main ( void )
 {
@@ -71,6 +104,7 @@ main ( void )
 
 	el = get_el ();
 	printf ( "Running at EL %d\n", el );
+	show_cpu ();
 
 	/* This will run the blink demo */
 	printf ( "Blinking ...\n" );
