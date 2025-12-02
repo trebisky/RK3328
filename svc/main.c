@@ -131,6 +131,8 @@ try_syscall ( void )
 		asm volatile("svc #0x123" );
 }
 
+void handle_bad ( int );
+
 void
 main ( void )
 {
@@ -154,13 +156,31 @@ main ( void )
 	printf ( "Running at EL %d\n", el );
 	show_cpu ();
 
-	// try_syscall ();
+	printf ( "Fire off the SVC\n" );
+	try_syscall ();
 
 	/* This will run the blink demo */
 	printf ( "Blinking ...\n" );
 	blinker ();
 
 	/* NOTREACHED */
+}
+
+/* When we get a synchronous exception,
+ * it should come here.
+ */
+void
+handle_sync ( void )
+{
+	printf ( "Synch exception\n" );
+	spin ();
+}
+
+void
+handle_bad ( int who )
+{
+	printf ( "Bad exception: %d\n", who );
+	spin ();
 }
 
 /* THE END */

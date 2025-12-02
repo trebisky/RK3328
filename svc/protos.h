@@ -9,6 +9,8 @@ typedef unsigned int u32;
 
 #define BIT(x)	(1<<(x))
 
+void spin ( void );
+
 void uart_init ( void );
 void uart_putc ( char );
 void uart_puts ( char * );

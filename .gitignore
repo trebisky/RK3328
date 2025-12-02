@@ -1,6 +1,7 @@
 *.o
 *.bin
 *.elf
+*.dis
 *.dump
 *.swp
 z
