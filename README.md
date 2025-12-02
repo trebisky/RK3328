@@ -15,3 +15,4 @@ Here are the projects you will find here:
 * blink - second simple project - blink the status LED
 * blink3 - blink all 3 onboard LED, big code cleanup
 * svc - experiment with the SVC exception
+* gic - experiment with interrupts via the GIC
