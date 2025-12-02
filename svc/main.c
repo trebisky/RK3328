@@ -125,8 +125,11 @@ testY ( void )
 		printf ( "SPSR_el2 = %Y\n", lval );
 }
 
+/* The argument is in x0, so this works.
+ * A lot of serendipity though.
+ */
 void
-try_syscall ( void )
+try_syscall ( int a, int b )
 {
 		asm volatile("svc #0x123" );
 }
@@ -157,7 +160,7 @@ main ( void )
 	show_cpu ();
 
 	printf ( "Fire off the SVC\n" );
-	try_syscall ();
+	try_syscall ( 789, 123 );
 
 	/* This will run the blink demo */
 	printf ( "Blinking ...\n" );
@@ -170,10 +173,10 @@ main ( void )
  * it should come here.
  */
 void
-handle_sync ( void )
+handle_sync ( int a, int b )
 {
-	printf ( "Synch exception\n" );
-	spin ();
+	printf ( "Synch exception: %d %d\n", a, b );
+	// spin ();
 }
 
 void
