@@ -8,7 +8,7 @@ CROSS_COMPILE = aarch64-linux-gnu-
 
 # -------------------------------------
 
-OBJS = start.o blink.o prf.o uart.o gpio.o
+OBJS = start.o main.o prf.o uart.o gpio.o
 
 TARGET = $(BOARD).bin
 
