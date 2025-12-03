@@ -68,6 +68,10 @@ show_cpu ( void )
 		unsigned long lval;
 		int core_type;
 		int core;
+		int el;
+
+		el = get_el ();
+		printf ( "Running at EL %d\n", el );
 
         asm volatile("mrs %0, mpidr_el1" : "=r" (val) : : "cc");
 		printf ( "MPidr_el1 = %h\n", val );
@@ -98,6 +102,10 @@ show_cpu ( void )
 		asm volatile("mrs %0, hcr_el2" : "=r" (lval) : : "cc");
 		printf ( "HCR_el2 = %Y\n", lval );
 
+		/* XXX XXX -- grab FMO, IMO */
+		lval |= 0x18;
+		asm volatile("msr hcr_el2, %0" : : "r" (lval) : "cc");
+
 		asm volatile("mrs %0, spsr_el2" : "=r" (val) : : "cc");
 		printf ( "SPSR_el2 = %h\n", val );
 		asm volatile("mrs %0, spsr_el2" : "=r" (lval) : : "cc");
@@ -107,6 +115,10 @@ show_cpu ( void )
 		//  exactly as we would expect.
 		// asm volatile("mrs %0, spsr_el3" : "=r" (val) : : "cc");
 		// printf ( "SPSR_el3 = %h\n", val );
+
+		// Attempting this at EL2 yields a synchronous abort,
+		// asm volatile("mrs %0, scr_el3" : "=r" (val) : : "cc");
+		// printf ( "SCR_el3 = %h\n", val );
 
 		asm volatile("mrs %0, vbar_el2" : "=r" (val) : : "cc");
 		printf ( "VBAR_el2 = %h\n", val );
@@ -134,33 +146,65 @@ try_syscall ( int a, int b )
 		asm volatile("svc #0x123" );
 }
 
+/* These only go inline with gcc -O of some kind */
+static inline void
+INT_unlock ( void )
+{
+    asm volatile("msr DAIFClr, #3" : : : "cc");
+}
+
+static inline void
+INT_lock ( void )
+{
+    asm volatile("msr DAIFSet, #3" : : : "cc");
+}
+
+/* We enable both IRQ and FIQ
+ * IRQ = 0x1, RIQ = 0x2
+ */
+static inline void
+enable_irq ( void )
+{
+    //COMPILER_BARRIER();
+    //write_daifclr(DAIF_IRQ_BIT);
+    //isb();
+	asm volatile ("" ::: "memory");
+    asm volatile ( "msr DAIFClr, #3" : : : "cc");
+    asm volatile ( "isb" );
+}
+
 void handle_bad ( int );
 
 void
 main ( void )
 {
-	int el;
 	int n;
 
 	uart_init ();
-
 	gpio_init ();
+	gic_init ();
+	gic_cpu_init ();
 
 	/* This will run the hello demo */
 	// talker ();
 
+#ifdef notdef
     n = sizeof(int);
 	printf ( "Int is %d bytes on aarch64\n", n );
     n = sizeof(long);
 	printf ( "Long is %d bytes on aarch64\n", n );
 	testY ();
+#endif
 
-	el = get_el ();
-	printf ( "Running at EL %d\n", el );
 	show_cpu ();
 
-	printf ( "Fire off the SVC\n" );
+#ifdef notdef
+	printf ( "Fire off an SVC\n" );
 	try_syscall ( 789, 123 );
+#endif
+
+	enable_irq ();
+	gic_test ();
 
 	/* This will run the blink demo */
 	printf ( "Blinking ...\n" );
@@ -184,6 +228,17 @@ handle_bad ( int who )
 {
 	printf ( "Bad exception: %d\n", who );
 	spin ();
+}
+
+void
+handle_int ( void )
+{
+	int irq;
+
+	irq = intcon_irqwho ();
+	intcon_irqack ( irq );
+
+	printf ( "Interrupt %d!\n", irq );
 }
 
 /* THE END */

@@ -25,4 +25,11 @@ void wan_led_off ( void );
 void lan_led_on ( void );
 void lan_led_off ( void );
 
+void gic_init ( void );
+void gic_cpu_init ( void );
+void gic_test ( void );
+
+int intcon_irqwho ( void );
+void intcon_irqack ( int );
+
 // THE END

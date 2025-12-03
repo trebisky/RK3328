@@ -1,7 +1,9 @@
 /*
  * gic.c
  *
- * Copied from Kyu source: /Projects/OrangePi/Github_h5/inter/gic.c
+ * Copied from repo: /Projects/Fire3/Github/Timer/intcon_gic400.c
+ * See also (identical): /Projects/OrangePi/Github_h5/inter/gic.c
+ *
  * back in 2020 or so this was:
  * Copied from Kyu source: /u1/Projects/Kyu/src/board/intcon400.c
  *
@@ -23,9 +25,9 @@
  */
 
 // #include "arch/types.h"
-// #include "fire3_ints.h"
 
 #include "protos.h"
+#include "rk3328_ints.h"
 
 /* The GIC-400 is GIC version 2.0
  */
@@ -114,8 +116,18 @@ struct gic400_cpu {
 	vu32 dir;			/* 0x1000 */
 };
 
+#ifdef H5_or_FIRE3_but_wrong
 #define GIC_DIST_BASE	((struct gic400_dist *) 0xc0009000)
 #define GIC_CPU_BASE	((struct gic400_cpu *) 0xc000a000)
+#endif
+
+/* RK3328
+ * Who would have guesses?
+ * We had to dig through the ATF sources to get this information
+ */
+#define GICBASE 0xFF810000
+#define GIC_DIST_BASE	((struct gic400_dist *) (GICBASE+0x1000) )
+#define GIC_CPU_BASE	((struct gic400_cpu *) (GICBASE+0x2000) )
 
 #define	G0_ENABLE	0x01
 #define	G1_ENABLE	0x02
@@ -125,7 +137,7 @@ intcon_ena ( int irq )
 {
 	struct gic400_dist *gp = GIC_DIST_BASE;
 	int x = irq / 32;
-	unsigned long mask = 1 << (irq%32);
+	unsigned int mask = 1 << (irq%32);
 
 	gp->eset[x] = mask;
 }
@@ -135,7 +147,7 @@ intcon_dis ( int irq )
 {
 	struct gic400_dist *gp = GIC_DIST_BASE;
 	int x = irq / 32;
-	unsigned long mask = 1 << (irq%32);
+	unsigned int mask = 1 << (irq%32);
 
 	gp->eclear[x] = mask;
 }
@@ -145,7 +157,7 @@ gic_unpend ( int irq )
 {
 	struct gic400_dist *gp = GIC_DIST_BASE;
 	int x = irq / 32;
-	unsigned long mask = 1 << (irq%32);
+	unsigned int mask = 1 << (irq%32);
 
 	gp->pclear[x] = mask;
 }
@@ -274,13 +286,15 @@ gic_init ( void )
 	gic_cpu_init ();
 }
 
-#ifdef notdef
 void
 gic_test ( void )
 {
-	// struct gic400_dist *gp = GIC_DIST_BASE;
-	// struct gic400_cpu *cp = GIC_CPU_BASE;
+	struct gic400_dist *gp = GIC_DIST_BASE;
+	struct gic400_cpu *cp = GIC_CPU_BASE;
 	int i;
+
+	printf ( "GIC DIST at = %X\n", gp );
+	printf ( "GIC CPU at = %X\n", cp );
 
 	/*
 	printf ( "GIC sgi at = %08x\n", &gp->sgi );
@@ -299,10 +313,9 @@ gic_test ( void )
 	}
 
 	for ( i=0; i<16; i++ ) {
-	    printf ( "SGI %d\n", i );
+	    printf ( "sending SGI %d\n", i );
 	    gic_soft_self ( SGI_0 + i );
 	}
 }
-#endif
 
 /* THE END */
