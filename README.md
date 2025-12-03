@@ -16,3 +16,4 @@ Here are the projects you will find here:
 * blink3 - blink all 3 onboard LED, big code cleanup
 * svc - experiment with the SVC exception
 * gic - experiment with interrupts via the GIC
+* timer - work with timer interrupts
