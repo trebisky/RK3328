@@ -174,6 +174,12 @@ enable_irq ( void )
     asm volatile ( "isb" );
 }
 
+/* This initialization does not work because we
+ * don't have a proper C language startup that
+ * initializes BSS or static variables.
+ */
+static int show_state = 0;
+
 void handle_bad ( int );
 
 void
@@ -210,10 +216,39 @@ main ( void )
 	// gic_test ();
 
 	/* This will run the blink demo */
-	printf ( "Blinking ...\n" );
-	blinker ();
+	// printf ( "Blinking ...\n" );
+	// blinker ();
+
+	printf ( "Blinking via timer interrupts  ...\n" );
+	show_state = 0;
+	for ( ;; ) {
+		asm volatile ( "wfe" );
+	}
 
 	/* NOTREACHED */
+}
+
+/* Called at interrupt level by timer interrupts
+ */
+
+void
+light_show ( void )
+{
+	// printf ( "Show %d\n", show_state );
+
+	if ( show_state == 0 ) {
+		show_state = 1;
+		status_led_off ();
+		wan_led_on ();
+	} else if ( show_state == 1 ) {
+		show_state = 2;
+		wan_led_off ();
+		lan_led_on ();
+	} else if ( show_state == 2 ) {
+		show_state = 0;
+		lan_led_off ();
+		status_led_on ();
+	}
 }
 
 /* When we get a synchronous exception,
@@ -243,10 +278,11 @@ handle_int ( void )
 
 	if ( irq >= IRQ_TIMER0 && irq <= IRQ_TIMER5 ) {
 		timer_handler ( irq );
+		light_show ();
 		return;
 	}
 
-	printf ( "Interrupt %d!\n", irq );
+	printf ( "Unexpected interrupt %d!\n", irq );
 }
 
 /* THE END */

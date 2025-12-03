@@ -103,7 +103,7 @@ timer_handler ( int irq )
 
 	/* clear the interrupt */
 	tp->intstatus = 1;
-	printf ( "Tick for IRQ %d\n", irq );
+	// printf ( "Tick for IRQ %d\n", irq );
 }
 
 void
@@ -129,7 +129,7 @@ timer_setup ( int t, u32 val )
 
 	intcon_ena ( SYS_TIMER_IRQ );
 
-	printf ( "Timer: %d  %h %h\n", tp->intstatus, tp->count1, tp->count0 );
+	// printf ( "Timer: %d  %h %h\n", tp->intstatus, tp->count1, tp->count0 );
 }
 
 void
@@ -140,6 +140,7 @@ timer_show ( void )
 
 	hi = tp->val1;
 	lo = tp->val0;
+
 	printf ( "Timer: %d  %h %h\n", tp->intstatus, hi, lo );
 }
 
