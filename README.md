@@ -17,3 +17,4 @@ Here are the projects you will find here:
 * svc - experiment with the SVC exception
 * gic - experiment with interrupts via the GIC
 * timer - work with timer interrupts
+* core - start a second core
