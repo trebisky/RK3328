@@ -119,7 +119,7 @@ timer_setup ( int t, u32 val )
 
 	tp = &TIMER0_BASE[t];
 	cur_timer = tp;
-	printf ( "Timer %d base addr: %X\n", t, tp );
+	// printf ( "Timer %d base addr: %X\n", t, tp );
 
 	tp->control &= ~CTRL_ENA;
 	tp->control &= ~CTRL_MODE;	/* free run */

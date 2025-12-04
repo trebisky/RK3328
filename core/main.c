@@ -9,49 +9,6 @@
 #include "protos.h"
 #include "rk3328_ints.h"
 
-/* Portable code below here */
-
-int limit = 500;
-
-void
-talker ( void )
-{
-	if ( ! limit ) {
-	    for ( ;; )
-		uart_puts ( "hello " );
-	} else {
-	    for ( ;limit--; )
-		uart_puts ( "hello " );
-	}
-}
-
-/* This might give about a 1 second delay */
-void
-delay ( void )
-{
-        volatile int count = 100000000;
-
-        while ( count-- )
-            ;
-}
-
-void
-blinker ( void )
-{
-	for ( ;; ) {
-	    // uart_puts ( "on\n" );
-		status_led_on ();
-		wan_led_on ();
-		lan_led_on ();
-	    delay ();
-	    // uart_puts ( "off\n" );
-		status_led_off ();
-		wan_led_off ();
-		lan_led_off ();
-	    delay ();
-	}
-}
-
 static inline unsigned int
 get_el(void)
 {
@@ -125,28 +82,6 @@ show_cpu ( void )
 		printf ( "VBAR_el2 = %h\n", val );
 }
 
-void
-testY ( void )
-{
-		unsigned long lval;
-
-		lval = 0xaabbccdddeadbeef;
-		printf ( "SPSR_el2 = %Y\n", lval );
-		lval = 0xdeadbeef;
-		printf ( "SPSR_el2 = %Y\n", lval );
-		lval = 0xdeadbeefL << 16;
-		printf ( "SPSR_el2 = %Y\n", lval );
-}
-
-/* The argument is in x0, so this works.
- * A lot of serendipity though.
- */
-void
-try_syscall ( int a, int b )
-{
-		asm volatile("svc #0x123" );
-}
-
 /* These only go inline with gcc -O of some kind */
 static inline void
 INT_unlock ( void )
@@ -174,6 +109,17 @@ enable_irq ( void )
     asm volatile ( "isb" );
 }
 
+/* If and when a new core starts up, it should come here */
+void
+core_main ( void )
+{
+	printf ( "New core!!\n" );
+	for ( ;; )
+		printf ( "!" );
+}
+
+extern int core_start;
+
 #define CORE1		0xff090004
 #define CORE2		0xff090008
 #define CORE_MAGIC	0xdeadbeaf
@@ -190,6 +136,7 @@ static void
 core_probe ( void )
 {
 		int *p;
+		int loc;
 
 		p = (int *) CORE1;
 		printf ( "Core 1 %X: %X\n", p, *p );
@@ -197,9 +144,65 @@ core_probe ( void )
 		printf ( "Core 2 %X: %X\n", p, *p );
 
 		p = (int *) CORE2;
-		*p = CORE_START;
+		// loc = CORE_START;
+		/* Gets warning, but works */
+		loc = (int) &core_start;
+		printf ( "New core will start at %X\n", loc );
+		*p = loc;
 		p = (int *) CORE1;
 		*p = CORE_MAGIC;
+
+		p = (int *) CORE1;
+		printf ( "Core 1 %X: %X\n", p, *p );
+		p = (int *) CORE2;
+		printf ( "Core 2 %X: %X\n", p, *p );
+}
+
+#define PMU_BASE 0xff140000
+
+struct rock_pmu {
+	vu32	wakeup;
+	u32		_pad1[2];
+	vu32	pwrdn_con;	/* 0c */
+	vu32	pwrdn_st;	/* 10 */
+	u32		_pad2;
+	vu32	pwrmode;	/* 18 */
+	vu32	sft_con;	/* 1c */
+	vu32	int_con;	/* 20 */
+	vu32	int_st;		/* 24 */
+	u32		_pad3[7];
+	vu32	power;		/* 44 */
+	u32		_pad4[14];
+	vu32	cpu0_apm;	/* 80 */
+	vu32	cpu1_apm;	/* 84 */
+	vu32	cpu2_apm;	/* 88 */
+	vu32	cpu3_apm;	/* 8c */
+	u32		_pad5[4];
+	vu32	reg0;		/* a0 */
+	vu32	reg1;		/* a4 */
+	vu32	reg2;		/* a8 */
+	vu32	reg3;		/* ac */
+};
+
+/* We don't really fix anything */
+void
+pmu_fix ( void )
+{
+		struct rock_pmu *pp;
+
+		pp = (struct rock_pmu *) PMU_BASE;
+		// printf ( "Check pmu = %X\n", &pp->power );
+		// printf ( "Check pmu = %X\n", &pp->cpu0_apm );
+		// printf ( "Check pmu = %X\n", &pp->reg0 );
+
+		printf ( "Pwrdn con = %X\n", pp->pwrdn_con );
+		printf ( "Pwrdn  st = %X\n", pp->pwrdn_st );
+
+		// pp->pwrdn_con = 0x0c;
+		pp->pwrdn_con = 0x0;
+		printf ( "Pwrdn con = %X\n", pp->pwrdn_con );
+		printf ( "Pwrdn  st = %X\n", pp->pwrdn_st );
+		pp->cpu1_apm = 0xf;
 }
 
 /* This initialization does not work because we
@@ -220,33 +223,15 @@ main ( void )
 	gic_init ();
 	gic_cpu_init ();
 
-	/* This will run the hello demo */
-	// talker ();
-
-#ifdef notdef
-    n = sizeof(int);
-	printf ( "Int is %d bytes on aarch64\n", n );
-    n = sizeof(long);
-	printf ( "Long is %d bytes on aarch64\n", n );
-	testY ();
-#endif
-
 	show_cpu ();
-
-#ifdef notdef
-	printf ( "Fire off an SVC\n" );
-	try_syscall ( 789, 123 );
-#endif
+	pmu_fix ();
 
 	timer_init ();
 
 	enable_irq ();
 	// gic_test ();
 
-	/* This will run the blink demo */
-	// printf ( "Blinking ...\n" );
-	// blinker ();
-
+	printf ( "\n" );
 	printf ( "Probing second core\n" );
 	core_probe ();
 

@@ -15,6 +15,17 @@ start:
 	.globl spin
 spin:	b		spin
 
+	.global core_start
+core_start:
+	msr		DAIFSet, #7		// disable interrupts
+	ldr		x0, =0x30000000
+	mov		sp, x0
+	bl		core_main
+	b		.
+
+# ----------------------------------
+# Nothing but vectors below here:
+
     .align  11
     .globl  vectors
 vectors:
