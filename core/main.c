@@ -144,9 +144,9 @@ core_probe ( void )
 		printf ( "Core 2 %X: %X\n", p, *p );
 
 		p = (int *) CORE2;
-		// loc = CORE_START;
+		loc = CORE_START;
 		/* Gets warning, but works */
-		loc = (int) &core_start;
+		// loc = (int) &core_start;
 		printf ( "New core will start at %X\n", loc );
 		*p = loc;
 		p = (int *) CORE1;
@@ -211,39 +211,6 @@ pmu_fix ( void )
  */
 static int show_state = 0;
 
-void handle_bad ( int );
-
-void
-main ( void )
-{
-	int n;
-
-	uart_init ();
-	gpio_init ();
-	gic_init ();
-	gic_cpu_init ();
-
-	show_cpu ();
-	pmu_fix ();
-
-	timer_init ();
-
-	enable_irq ();
-	// gic_test ();
-
-	printf ( "\n" );
-	printf ( "Probing second core\n" );
-	core_probe ();
-
-	printf ( "Blinking via timer interrupts  ...\n" );
-	show_state = 0;
-	for ( ;; ) {
-		asm volatile ( "wfe" );
-	}
-
-	/* NOTREACHED */
-}
-
 /* Called at interrupt level by timer interrupts
  */
 
@@ -299,6 +266,64 @@ handle_int ( void )
 	}
 
 	printf ( "Unexpected interrupt %d!\n", irq );
+}
+
+/* This might give about a 1 second delay */
+void
+delay ( void )
+{
+        volatile int count = 100000000;
+
+        while ( count-- )
+            ;
+}
+
+/* Use delay loop instead of interrupts to investigate
+ * PLL changes
+ */
+static void
+dumb_delay_loop ( void )
+{
+	for ( ;; ) {
+		delay ();
+		light_show ();
+	}
+}
+
+void
+main ( void )
+{
+	int n;
+
+	uart_init ();
+	gpio_init ();
+	gic_init ();
+	gic_cpu_init ();
+
+	show_cpu ();
+	pmu_fix ();
+
+	timer_init ();
+
+	// gic_test ();
+
+	printf ( "\n" );
+	printf ( "Probing second core\n" );
+	core_probe ();
+
+	pll_show ();
+
+	printf ( "Blinking via dumb delays   ...\n" );
+	show_state = 0;
+	dumb_delay_loop ();
+
+	printf ( "Blinking via timer interrupts  ...\n" );
+	enable_irq ();
+	show_state = 0;
+	for ( ;; ) {
+		asm volatile ( "wfe" );
+	}
+	/* NOTREACHED */
 }
 
 /* THE END */

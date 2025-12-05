@@ -36,4 +36,6 @@ void intcon_ena ( int );
 void timer_init ();
 void timer_handler ( int );
 
+void pll_show ();
+
 // THE END
