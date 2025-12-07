@@ -23,6 +23,41 @@ core_start:
 	bl		core_main
 	b		.
 
+	.global smc_version
+smc_version:
+	ldr		x0, =0x80000000
+	smc		#0
+	ret
+
+	.global smc_socid
+smc_socid:
+	#mov		w1, w0
+	mov		x1, #1
+	ldr		x0, =0x80000002
+	smc		#0
+	ret
+
+	.global psci_version
+psci_version:
+	ldr		x0, =0x84000000
+	smc		#0
+	ret
+
+# args
+# 1 - mpidr info
+# 2 - launch address
+# 1 - context_id
+	.global psci_cpu_on
+psci_cpu_on:
+	mov		x1, x0
+	ldr		x0, =0xC4000003
+	#ldr		x2, =core_start
+	ldr		x2, =0x20000000
+	ldr		x3, =0
+	smc		#0
+	ret
+
+
 # ----------------------------------
 # Nothing but vectors below here:
 

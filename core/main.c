@@ -186,7 +186,7 @@ struct rock_pmu {
 
 /* We don't really fix anything */
 void
-pmu_fix ( void )
+pmu_show ( void )
 {
 		struct rock_pmu *pp;
 
@@ -301,21 +301,33 @@ main ( void )
 	gic_cpu_init ();
 
 	show_cpu ();
-	pmu_fix ();
+	// pmu_show ();
 
 	timer_init ();
 
 	// gic_test ();
 
+	/* Drop the CPU clock from 600 to 100 Mhz
+     * to reduce how hot the chip gets.
+     */ 
+	printf ( " Changing CPU clock to 100 Mhz\n" );
+    cpu_clock_100 ();
+
 	printf ( "\n" );
 	printf ( "Probing second core\n" );
 	core_probe ();
 
+	// pll_show ();
+
+#ifdef notdef
 	pll_show ();
 
 	printf ( "Blinking via dumb delays   ...\n" );
 	show_state = 0;
 	dumb_delay_loop ();
+#endif
+
+	psci_test ();
 
 	printf ( "Blinking via timer interrupts  ...\n" );
 	enable_irq ();

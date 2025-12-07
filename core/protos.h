@@ -6,6 +6,7 @@
 
 typedef volatile unsigned int vu32;
 typedef unsigned int u32;
+typedef unsigned long u64;
 
 #define BIT(x)	(1<<(x))
 
@@ -36,6 +37,13 @@ void intcon_ena ( int );
 void timer_init ();
 void timer_handler ( int );
 
-void pll_show ();
+void pll_show ( void );
+void cpu_clock_100 ( void );
+
+void psci_test ( void );
+int smc_version ( void );
+int smc_socid ( int );
+int psci_version ( void );
+int psci_cpu_on ( u64 );
 
 // THE END

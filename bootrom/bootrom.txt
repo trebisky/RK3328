@@ -59,6 +59,7 @@
 ;  in the publicly available reference manual.
 ; The "tbz" instruction tests a bit and branches
 ; if it is zero
+; This is the CON0 register in the SGRF
 
 ffff0000:	58000940 	ldr	x0, 0xffff0128 	; ff0d0000 00000000
 ffff0004:	b9400000 	ldr	w0, [x0]
@@ -67,6 +68,9 @@ ffff0008:	367800a0 	tbz	w0, #15, 0xffff001c
 ; This address is in the the RK3328 CRU (clock and reset unit)
 ; The "cbz" instruction tests the whole register and branches
 ; if it is zero
+; It holds several bits, each of which is 1 if this is NOT
+; the first reset.  So if the entire register is 0, this must
+; be the first reset.
 
 ffff000c:	580008a0 	ldr	x0, 0xffff0120	; ff440094 00000000
 ffff0010:	b9400000 	ldr	w0, [x0]
@@ -108,6 +112,7 @@ ffff0058:	d61f0000 	br	x0
 
 ; branch here from above on a peculiar case
 ; that I don't yet have enough information to understand.
+; If we get here, fetch an address to branch to from SGRF+0x180
 ffff005c:	580006a1 	ldr	x1, 0xffff0130 ; ff0d0180 00000000
 ffff0060:	b9400020 	ldr	w0, [x1]
 ffff0064:	d61f0000 	br	x0
