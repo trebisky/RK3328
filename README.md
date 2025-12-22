@@ -18,3 +18,4 @@ Here are the projects you will find here:
 * gic - experiment with interrupts via the GIC
 * timer - work with timer interrupts
 * core - start a second core
+* booti - try using "booti" to start my code

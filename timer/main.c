@@ -91,9 +91,10 @@ void handle_bad ( int );
 static void
 el2_fixup ( void )
 {
-		u32 lval;
+		unsigned long lval;
 
 		/* XXX XXX -- grab FMO, IMO */
+		asm volatile("mrs %0, hcr_el2" : "=r" (lval) : : "cc");
 		lval |= 0x18;
 		asm volatile("msr hcr_el2, %0" : : "r" (lval) : "cc");
 }
