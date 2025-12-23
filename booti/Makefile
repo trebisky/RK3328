@@ -8,7 +8,7 @@ CROSS_COMPILE = aarch64-linux-gnu-
 
 # -------------------------------------
 
-OBJS = start.o blink.o prf.o uart.o gpio.o
+OBJS = start.o main.o prf.o uart.o gpio.o
 
 TARGET = $(BOARD).bin
 
@@ -55,9 +55,14 @@ LOAD			=	tools/loader -h64
 all: install
 #all: $(TARGET)
 
-install: $(TARGET)
-	cp $(TARGET) /var/lib/tftpboot
+dtb:	bogus.dtb
 
+bogus.dtb: bogus.dts
+	dtc -I dts -O dtb -o bogus.dtb bogus.dts
+
+install: $(TARGET) bogus.dtb
+	cp $(TARGET) /var/lib/tftpboot
+	cp bogus.dtb /var/lib/tftpboot
 
 $(BOARD).elf: $(OBJS)
 	@echo " [LD]   $(BOARD).elf"

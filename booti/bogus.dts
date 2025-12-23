@@ -1,0 +1,8 @@
+/* Bogus empty device tree
+ */
+/dts-v1/;
+
+/ {
+    model = "Totally bogus";
+};
+

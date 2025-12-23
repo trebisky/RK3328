@@ -1,13 +1,23 @@
 The "booti" project for the Rockchip RK3328.
 
+This is a failed experiment.
+I had hoped this would start my code in EL1,
+but it still starts in EL2.
+
 This was begun by copying the files from blink3,
 since those have a decent printf() available.
 
-I want to add a header to my startup file
-that will allow me to try using the U-boot
+I added a header to my startup file
+that allows me to use the U-boot
 "booti" command to start this code.
 
-Then I want to see if this starts the code
-running in EL1 as I hope it will.
+I also needed a "dtb" file to keep the U-boot
+booti command happy.
+
+Then from U-boot I do:
+
+1. dhcp
+2. tftpboot 03000000 bogus.dtb
+3. booti 0x02000000 - 03000000
 
 Tom Trebisky  12-22-2025
