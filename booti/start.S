@@ -23,14 +23,24 @@ start:
     .quad   0               // reserved
     .quad   0               // reserved
     .ascii  ARM64_IMAGE_MAGIC       // Magic number
-    .long   0		      // Offset to the PE header.
+    .long   0		        // Offset to the PE header.
 
-/* Note in the above that I have simply set the kernel image size,
- * flags, and PE offset to zero, expecting that U-boot just
- * ignores them.
- * Also note that if we just use "go" to run this, it will work
+
+/* I began my experiments by setting the kernel image size and
+ *  the flags to zero, but later set up realistic values.
+ * The current value for flags is 0xa, which is:
+ *  Bit 3 - 1 - kernel can be anywhere, but must be 2M aligned
+ *          0 -  would say to move it a close as possible to 0 address in ram
+ *  Bits 1-2 - 01 = 4K page size
+ *  Bit 0  -  0 says little endian.
+ *
+ * I set the PE offset to zero, expecting that U-boot will just
+ * ignore it.
+ * PE is "portable executable" and has to do with EFI booting.
+ *
+ * Also --  if we just use "go" to run this, it will work
  * by virtue of the first two words of the header being
- * machine instructions.
+ * machine instructions that jump to the code below.
  */
 
 primary_entry:
